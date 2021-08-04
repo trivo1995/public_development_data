@@ -1,0 +1,863 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><meta http-equiv="X-UA-Compatible" content="IE=edge" charset="utf-8" /><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>
+	World Development Indicators | The World Bank
+</title>
+
+    <script type="text/javascript" src="//script.crazyegg.com/pages/scripts/0058/1350.js" async="async"></script>
+
+    <link href="/Styles/jquery-ui12.css" rel="stylesheet" type="text/css" />
+    <link href="/styles/css/bootstrap.css" rel="stylesheet" />
+    <!-- Custom styles for this template -->
+    <link href="/styles/css/main.css" rel="stylesheet" />
+    <link href="/styles/css/responsive.css" rel="stylesheet" />
+    <link href="/styles/css/icon.css" rel="stylesheet" />
+    
+    <link href="/Styles/network.css" rel="stylesheet" type="text/css" />
+    <link href="/Styles/style-en.css" rel="stylesheet" type="text/css" />
+    <link href="/Styles/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+    
+    <script src="/scripts/jquery-1.10.2.min.js" type="text/javascript"></script> 
+    <script src="/scripts/jquery-ui.min.js" type="text/javascript"></script> 
+    <script src="/scripts/bootstrap.js" type="text/javascript"></script> 
+    <script src="/scripts/slick.min.js" type="text/javascript"></script> 
+    <script src="/scripts/select2.min.js" type="text/javascript"></script>
+
+    
+    
+    
+
+    <script type="text/javascript" src="/Scripts/script.js"></script>
+    <!--Shaheer Apr 9th 2013 , overriding width property of auto complete list -->
+
+    <style type="text/css">
+        .ui-autocomplete { position: absolute; cursor: default; width:333px!important;}	
+    </style>
+    <style type="text/css">
+        #helplink
+        {
+            position: fixed;
+            right: 10px;
+            bottom: 0px;
+            z-index: 100;
+            background: transparent;
+            cursor: pointer;
+        }
+        
+        #helplink h2
+        {
+            font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-size: 13px;
+            color: #fff;
+            background: #54584c;
+            opacity: 0.9;
+            line-height: 20px;
+            white-space: nowrap;
+            padding: 5px 15px;
+            margin: 0;
+            border: 0;
+            border-radius: 3px 3px 0 0;
+            -moz-border-radius: 3px 3px 0 0;
+            -webkit-border-radius: 3px 3px 0 0;
+        }
+        
+        #helplink h2:hover
+        {
+            opacity: 1;
+        }
+        #wbg-header, #wbg-site-name, #wbg-footer {
+          width: 960px;
+          margin: 0 auto;
+          padding: 0;
+        }
+        .clear-block:after {
+            clear: both;
+            content: ".";
+            display: block;
+            height: 0;
+            visibility: hidden;
+        }
+    </style>
+    <script type="text/javascript">
+	var strSerachUrl="/index.aspx/PopulateSearchResult";
+	var strErrorUrl="/DDP_Error.html";
+    var gbl_ajax_path = '/AjaxServices/AjaxServiceTemplate.asmx';
+    var file_download_url = '/AjaxDownload/FileDownloadHandler.ashx?';
+
+        $(document).ready(function () {
+            
+            loadSectionReports($('#hdnSectionToLoad').val());
+            $('#leftframe ul.mainTopics li[sectionid="' + $('#hdnSectionToLoad').val() + '"]').addClass("selected");
+
+            AutoComplete();
+            initShowHideFooter();
+
+            function initShowHideFooter() {
+                $("#showHideFooter").on("click", function () {
+                    if ($(this).hasClass("plus")) {
+
+                        $(this).removeClass("plus").addClass("minus");
+                        $(this).attr("title", "Hide");
+                        $("#bobcontent2").show();
+                    }
+                    else {
+                        $(this).removeClass("minus").addClass("plus");
+                        $(this).attr("title", "Show");
+                        $("#bobcontent2").hide();
+
+                    }
+
+                });
+
+            }
+
+        });
+        function loadSectionReports(sectionId) {
+
+            $.ajax({
+                type: "POST",
+                url: "/index.aspx/LoadSectionReportList",
+                contentType: "application/json; charset=utf-8",
+                data: "{sectionId:'" + sectionId + "'}",
+                dataType: "json",
+                success: function (data) {
+                    var result = data.d;
+                    document.getElementById("rightframe").innerHTML = result;
+                     $(".tableSynopsis").dotdotdot({ after: 'a.more' });
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                    window.location.href = "/DDP_Error.html";
+                }
+            });
+        }
+
+        function getParameterByName(name) {
+            name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                results = regex.exec(location.search);
+            return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        }
+
+        function AutoComplete() {
+
+
+            $('#txtIndicatorSearch').autocomplete
+            (
+            {
+                source: function (request, response) {
+                    var iu = document.getElementById('txtIndicatorSearch').value;
+                    var text = iu.replace(/'/g, "\\'");
+                    $.ajax(
+                    {
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        url: "/index.aspx/GetAllIndicators",
+                        data: "{ 'keywords':'" + text + "'}",
+                        dataType: "json",
+                        async: true,
+                        success: function (data) {
+
+                           
+                            response(data.d);
+                        },
+                        error: function (result) {
+                            alert("Error here" + result);
+                        }
+                    }
+                    );
+                }
+
+            }
+            );
+        }
+
+        function ExportPdf(tableNo) {
+            $("#report-loading").fadeIn(200);
+            var file_download_url = "/AjaxDownload/FileDownloadHandler.ashx?";
+            $.ajax({
+                type: "POST",
+                url: "/index.aspx/ExportPdf",
+                contentType: "application/json; charset=utf-8",
+                data: "{tableNo:'" + tableNo + "'}",
+                dataType: "json",
+                success: function (data) {
+                    if (data.d.length > 0) {                      
+                        $("#dl-iframe").get(0).src = file_download_url + data.d;
+                    }
+                    
+                    AnalyticsControlClick("WDI:Tables:Download:PDF", $('a[href$="/table/'+ tableNo +'"]').text());
+                    
+                    $("#report-loading").fadeOut(300);
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                    window.location.href = "/DDP_Error.html";
+                }
+            });
+        }
+
+        function ExportExcel(tableNo) {
+            $("#report-loading").fadeIn(200);
+            var file_download_url = "/AjaxDownload/FileDownloadHandler.ashx?";
+            $.ajax({
+                type: "POST",
+                url: "/index.aspx/ExportExcel",
+                contentType: "application/json; charset=utf-8",
+                data: "{tableNo:'" + tableNo + "'}",
+                dataType: "json",
+                success: function (data) {
+                    if (data.d.length > 0) {
+                        $("#dl-iframe").get(0).src = file_download_url + data.d;
+                        
+                        AnalyticsControlClick("WDI:Tables:Download:Excel", $('a[href$="/table/'+ tableNo +'"]').text());
+                    }
+                    $("#report-loading").fadeOut(300);
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                    window.location.href = "/DDP_Error.html";
+                }
+            });
+        }                                                                                                                                                                                                         
+        function triggerSearch1() {
+            var searchtext = document.getElementById("txtIndicatorSearch").value;
+            $.ajax({
+                type: "POST",
+                url: "Index.aspx/PopulateSearchResult",
+                contentType: "application/json; charset=utf-8",
+                data: "{'indicatorText':'" + searchtext + "'}",
+                dataType: "json",
+                success: function (data) {
+                    var result = data.d;
+                        document.getElementById("divSearchResults").innerHTML = result;
+                        $('#content-box-indi').addClass("dispBlock");
+                        $(".searchHeading").show();
+                        $("#leftframe").addClass("dispNone");
+                        $("#rightframe").addClass("dispNone");
+                    
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                    window.location.href = "../../DDP_Error.html";
+                }
+            });         
+
+        }
+	
+        function ExportRanking(filetype, reportid) {
+            $("#report-loading").fadeIn(200);
+            $.ajax({
+                type: "POST",
+                url: gbl_ajax_path + "/ExportFileTemplate",
+                contentType: "application/json; charset=utf-8",
+                data: "{filetype:'" + filetype + "', ReportID:'" + reportid + "', ReportType:'TABLE', IsInternal:'', PageSelection: '', QueryParams: ''}",
+                dataType: "json",
+                success: function (data) {
+                    if (data.d.length > 0) {
+                        if (data.d.indexOf('filename') == 0) {
+                            $("#dl-iframe").get(0).src = file_download_url + data.d;
+                        }
+                        else {
+                            alert(data.d);
+                        }
+                    }
+                    $("#report-loading").fadeOut(300);
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    window.location.href = "../DDP_Error.html";
+                }
+            });        }
+    </script>
+    <script type="text/javascript">
+        if (top != self) {
+            alert('The URL ' + self.location.href + ' cannot be viewed inside a frame. You will be redirected');
+            window.location = "http://message.worldbank.org/www-ext-404.html";
+        }
+    </script>
+    <script type="text/javascript">
+
+        /* Code to add User Voice implementation script. The gnarly string in the URL identifies our account
+
+        There are a couple of simpler alternatives to add the script, including the jQuery.getScript function,
+        or simply linking it with an ordinary <script/> tag. I've used the jQuery option successfully, but the 
+        plain <script/> tag approach tends to cause security certificate issues with IE, IE9 in particular. I'm
+        trying to get more clarity with UserVoice.
+        */
+        (function () {
+            var uv = document.createElement('script');
+            uv.type = 'text/javascript';
+            uv.async = true;
+            uv.src = '//widget.uservoice.com/XzQsWhTqmnE8dYDOJ0HjJQ.js';
+
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(uv, s)
+        })()
+
+</script>
+    <script type="text/javascript">
+
+    function uvClick() {
+        // set following parameter to site identifier: Data, Databank, Finances or DataCatalog
+        var siteIdentifier = 'WDI';
+
+        UserVoice = window.UserVoice || [];
+        UserVoice.push(['setCustomFields', { 'Origin': siteIdentifier}]);
+        UserVoice.push(['showLightbox', 'classic_widget', {
+            mode: 'support',
+            primary_color: '#54584c',
+            link_color: '#38B1EF'
+        }]);
+    }
+
+    </script>
+    <script type="text/javascript">
+        // -------------------------------------------------------------------
+        // Switch Content Script- By Dynamic Drive, available at: http://www.dynamicdrive.com
+        // Created: Jan 5th, 2007
+        // April 5th, 07: Added ability to persist content states by x days versus just session only
+        // March 27th, 08': Added ability for certain headers to get its contents remotely from an external file via Ajax (2 variables below to customize)
+        // -------------------------------------------------------------------
+
+        var switchcontent_ajax_msg = '<em>Loading Ajax content...</em>' //Customize message to show while fetching Ajax content (if applicable)
+        var switchcontent_ajax_bustcache = true //Bust cache and refresh fetched Ajax contents when page is reloaded/ viewed again?
+
+        function switchcontent(className, filtertag) {
+            this.className = className
+            this.collapsePrev = false //Default: Collapse previous content each time
+            this.persistType = "none" //Default: Disable persistence
+            //Limit type of element to scan for on page for switch contents if 2nd function parameter is defined, for efficiency sake (ie: "div")
+            this.filter_content_tag = (typeof filtertag != "undefined") ? filtertag.toLowerCase() : ""
+            this.ajaxheaders = {} //object to hold path to ajax content for corresponding header (ie: ajaxheaders["header1"]='external.htm')
+        }
+
+        switchcontent.prototype.setStatus = function (openHTML, closeHTML) { //PUBLIC: Set open/ closing HTML indicator. Optional
+            this.statusOpen = openHTML
+            this.statusClosed = closeHTML
+        }
+
+        switchcontent.prototype.setColor = function (openColor, closeColor) { //PUBLIC: Set open/ closing color of switch header. Optional
+            this.colorOpen = openColor
+            this.colorClosed = closeColor
+        }
+
+        switchcontent.prototype.setPersist = function (bool, days) { //PUBLIC: Enable/ disable persistence. Default is false.
+            if (bool == true) { //if enable persistence
+                if (typeof days == "undefined") //if session only
+                    this.persistType = "session"
+                else { //else if non session persistent
+                    this.persistType = "days"
+                    this.persistDays = parseInt(days)
+                }
+            }
+            else
+                this.persistType = "none"
+        }
+
+        switchcontent.prototype.collapsePrevious = function (bool) { //PUBLIC: Enable/ disable collapse previous content. Default is false.
+            this.collapsePrev = bool
+        }
+
+        switchcontent.prototype.setContent = function (index, filepath) { //PUBLIC: Set path to ajax content for corresponding header based on header index
+            this.ajaxheaders["header" + index] = filepath
+        }
+
+        switchcontent.prototype.sweepToggle = function (setting) { //PUBLIC: Expand/ contract all contents method. (Values: "contract"|"expand")
+            if (typeof this.headers != "undefined" && this.headers.length > 0) { //if there are switch contents defined on the page
+                for (var i = 0; i < this.headers.length; i++) {
+                    if (setting == "expand")
+                        this.expandcontent(this.headers[i]) //expand each content
+                    else if (setting == "contract")
+                        this.contractcontent(this.headers[i]) //contract each content
+                }
+            }
+        }
+
+
+        switchcontent.prototype.defaultExpanded = function () { //PUBLIC: Set contents that should be expanded by default when the page loads (ie: defaultExpanded(0,2,3)). Persistence if enabled overrides this setting.
+            var expandedindices = [] //Array to hold indices (position) of content to be expanded by default
+            //Loop through function arguments, and store each one within array
+            //Two test conditions: 1) End of Arguments array, or 2) If "collapsePrev" is enabled, only the first entered index (as only 1 content can be expanded at any time)
+            for (var i = 0; (!this.collapsePrev && i < arguments.length) || (this.collapsePrev && i == 0); i++)
+                expandedindices[expandedindices.length] = arguments[i]
+            this.expandedindices = expandedindices.join(",") //convert array into a string of the format: "0,2,3" for later parsing by script
+        }
+
+
+        //PRIVATE: Sets color of switch header.
+
+        switchcontent.prototype.togglecolor = function (header, status) {
+            if (typeof this.colorOpen != "undefined")
+                header.style.color = status
+        }
+
+
+        //PRIVATE: Sets status indicator HTML of switch header.
+
+        switchcontent.prototype.togglestatus = function (header, status) {
+            if (typeof this.statusOpen != "undefined")
+                header.firstChild.innerHTML = status
+        }
+
+
+        //PRIVATE: Contracts a content based on its corresponding header entered
+
+        switchcontent.prototype.contractcontent = function (header) {
+            var innercontent = document.getElementById(header.id.replace("-title", "")) //Reference content container for this header
+            innercontent.style.display = "none"
+
+            this.togglestatus(header, this.statusClosed)
+            this.togglecolor(header, this.colorClosed)
+
+
+
+
+        }
+
+
+        //PRIVATE: Expands a content based on its corresponding header entered
+
+        switchcontent.prototype.expandcontent = function (header) {
+            var innercontent = document.getElementById(header.id.replace("-title", ""))
+            if (header.ajaxstatus == "waiting") {//if this is an Ajax header AND remote content hasn't already been fetched
+                switchcontent.connect(header.ajaxfile, header)
+            }
+            innercontent.style.display = "block"
+
+            this.togglestatus(header, this.statusOpen)
+            this.togglecolor(header, this.colorOpen)
+
+
+
+        }
+
+        // -------------------------------------------------------------------
+        // PRIVATE: toggledisplay(header)- Toggles between a content being expanded or contracted
+        // If "Collapse Previous" is enabled, contracts previous open content before expanding current
+        // -------------------------------------------------------------------
+
+        switchcontent.prototype.toggledisplay = function (header) {
+            var innercontent = document.getElementById(header.id.replace("-title", "")) //Reference content container for this header
+            if (innercontent.style.display == "block")
+                this.contractcontent(header)
+            else {
+                this.expandcontent(header)
+                if (this.collapsePrev && typeof this.prevHeader != "undefined" && this.prevHeader.id != header.id) // If "Collapse Previous" is enabled and there's a previous open content
+                    this.contractcontent(this.prevHeader) //Contract that content first
+            }
+            if (this.collapsePrev)
+                this.prevHeader = header //Set current expanded content as the next "Previous Content"
+        }
+
+
+        // -------------------------------------------------------------------
+        // PRIVATE: collectElementbyClass()- Searches and stores all switch contents (based on shared class name) and their headers in two arrays
+        // Each content should carry an unique ID, and for its header, an ID equal to "CONTENTID-TITLE"
+        // -------------------------------------------------------------------
+
+        switchcontent.prototype.collectElementbyClass = function (classname) { //Returns an array containing DIVs with specified classname
+            var classnameRE = new RegExp("(^|\\s+)" + classname + "($|\\s+)", "i") //regular expression to screen for classname within element
+            this.headers = [], this.innercontents = []
+            if (this.filter_content_tag != "") //If user defined limit type of element to scan for to a certain element (ie: "div" only)
+                var allelements = document.getElementsByTagName(this.filter_content_tag)
+            else //else, scan all elements on the page!
+                var allelements = document.all ? document.all : document.getElementsByTagName("*")
+            for (var i = 0; i < allelements.length; i++) {
+                if (typeof allelements[i].className == "string" && allelements[i].className.search(classnameRE) != -1) {
+                    if (document.getElementById(allelements[i].id + "-title") != null) { //if header exists for this inner content
+                        this.headers[this.headers.length] = document.getElementById(allelements[i].id + "-title") //store reference to header intended for this inner content
+                        this.innercontents[this.innercontents.length] = allelements[i] //store reference to this inner content
+                    }
+                }
+            }
+        }
+
+
+        //PRIVATE: init()- Initializes Switch Content function (collapse contents by default unless exception is found)
+
+        switchcontent.prototype.init = function () {
+            var instanceOf = this
+            this.collectElementbyClass(this.className) //Get all headers and its corresponding content based on shared class name of contents
+            if (this.headers.length == 0) //If no headers are present (no contents to switch), just exit
+                return
+            //If admin has changed number of days to persist from current cookie records, reset persistence by deleting cookie
+            if (this.persistType == "days" && (parseInt(switchcontent.getCookie(this.className + "_dtrack")) != this.persistDays))
+                switchcontent.setCookie(this.className + "_d", "", -1) //delete cookie
+            // Get ids of open contents below. Four possible scenerios:
+            // 1) Session only persistence is enabled AND corresponding cookie contains a non blank ("") string
+            // 2) Regular (in days) persistence is enabled AND corresponding cookie contains a non blank ("") string
+            // 3) If there are contents that should be enabled by default (even if persistence is enabled and this IS the first page load)
+            // 4) Default to no contents should be expanded on page load ("" value)
+            var opencontents_ids = (this.persistType == "session" && switchcontent.getCookie(this.className) != "") ? ',' + switchcontent.getCookie(this.className) + ',' : (this.persistType == "days" && switchcontent.getCookie(this.className + "_d") != "") ? ',' + switchcontent.getCookie(this.className + "_d") + ',' : (this.expandedindices) ? ',' + this.expandedindices + ',' : ""
+            for (var i = 0; i < this.headers.length; i++) { //BEGIN FOR LOOP
+                if (typeof this.ajaxheaders["header" + i] != "undefined") { //if this is an Ajax header
+                    this.headers[i].ajaxstatus = 'waiting' //two possible statuses: "waiting" and "loaded"
+                    this.headers[i].ajaxfile = this.ajaxheaders["header" + i]
+                }
+                if (typeof this.statusOpen != "undefined") //If open/ closing HTML indicator is enabled/ set
+                    this.headers[i].innerHTML = '<span class="status"></span>' + this.headers[i].innerHTML //Add a span element to original HTML to store indicator
+                if (opencontents_ids.indexOf(',' + i + ',') != -1) { //if index "i" exists within cookie string or default-enabled string (i=position of the content to expand)
+                    this.expandcontent(this.headers[i]) //Expand each content per stored indices (if ""Collapse Previous" is set, only one content)
+                    if (this.collapsePrev) //If "Collapse Previous" set
+                        this.prevHeader = this.headers[i]  //Indicate the expanded content's corresponding header as the last clicked on header (for logic purpose)
+                }
+                else //else if no indices found in stored string
+                    this.contractcontent(this.headers[i]) //Contract each content by default
+                this.headers[i].onclick = function () { instanceOf.toggledisplay(this) }
+            } //END FOR LOOP
+            switchcontent.dotask(window, function () { instanceOf.rememberpluscleanup() }, "unload") //Call persistence method onunload
+        }
+
+
+        // -------------------------------------------------------------------
+        // PRIVATE: rememberpluscleanup()- Stores the indices of content that are expanded inside session only cookie
+        // If "Collapse Previous" is enabled, only 1st expanded content index is stored
+        // -------------------------------------------------------------------
+
+        //Function to store index of opened ULs relative to other ULs in Tree into cookie:
+        switchcontent.prototype.rememberpluscleanup = function () {
+            //Define array to hold ids of open content that should be persisted
+            //Default to just "none" to account for the case where no contents are open when user leaves the page (and persist that):
+            var opencontents = new Array("none")
+            for (var i = 0; i < this.innercontents.length; i++) {
+                //If persistence enabled, content in question is expanded, and either "Collapse Previous" is disabled, or if enabled, this is the first expanded content
+                if (this.persistType != "none" && this.innercontents[i].style.display == "block" && (!this.collapsePrev || (this.collapsePrev && opencontents.length < 2)))
+                    opencontents[opencontents.length] = i //save the index of the opened UL (relative to the entire list of ULs) as an array element
+                this.headers[i].onclick = null //Cleanup code
+            }
+            if (opencontents.length > 1) //If there exists open content to be persisted
+                opencontents.shift() //Boot the "none" value from the array, so all it contains are the ids of the open contents
+            if (typeof this.statusOpen != "undefined")
+                this.statusOpen = this.statusClosed = null //Cleanup code
+            if (this.persistType == "session") //if session only cookie set
+                switchcontent.setCookie(this.className, opencontents.join(",")) //populate cookie with indices of open contents: classname=1,2,3,etc
+            else if (this.persistType == "days" && typeof this.persistDays == "number") { //if persistent cookie set instead
+                switchcontent.setCookie(this.className + "_d", opencontents.join(","), this.persistDays) //populate cookie with indices of open contents
+                switchcontent.setCookie(this.className + "_dtrack", this.persistDays, this.persistDays) //also remember number of days to persist (int)
+            }
+        }
+
+
+        // -------------------------------------------------------------------
+        // A few utility functions below:
+        // -------------------------------------------------------------------
+
+
+        switchcontent.dotask = function (target, functionref, tasktype) { //assign a function to execute to an event handler (ie: onunload)
+            var tasktype = (window.addEventListener) ? tasktype : "on" + tasktype
+            if (target.addEventListener)
+                target.addEventListener(tasktype, functionref, false)
+            else if (target.attachEvent)
+                target.attachEvent(tasktype, functionref)
+        }
+
+        switchcontent.connect = function (pageurl, header) {
+            var page_request = false
+            var bustcacheparameter = ""
+            if (window.ActiveXObject) { //Test for support for ActiveXObject in IE first (as XMLHttpRequest in IE7 is broken)
+                try {
+                    page_request = new ActiveXObject("Msxml2.XMLHTTP")
+                }
+                catch (e) {
+                    try {
+                        page_request = new ActiveXObject("Microsoft.XMLHTTP")
+                    }
+                    catch (e) { }
+                }
+            }
+            else if (window.XMLHttpRequest) // if Mozilla, Safari etc
+                page_request = new XMLHttpRequest()
+            else
+                return false
+            page_request.onreadystatechange = function () { switchcontent.loadpage(page_request, header) }
+            if (switchcontent_ajax_bustcache) //if bust caching of external page
+                bustcacheparameter = (pageurl.indexOf("?") != -1) ? "&" + new Date().getTime() : "?" + new Date().getTime()
+            page_request.open('GET', pageurl + bustcacheparameter, true)
+            page_request.send(null)
+        }
+
+        switchcontent.loadpage = function (page_request, header) {
+            var innercontent = document.getElementById(header.id.replace("-title", "")) //Reference content container for this header
+            innercontent.innerHTML = switchcontent_ajax_msg //Display "fetching page message"
+            if (page_request.readyState == 4 && (page_request.status == 200 || window.location.href.indexOf("http") == -1)) {
+                innercontent.innerHTML = page_request.responseText
+                header.ajaxstatus = "loaded"
+            }
+        }
+
+        switchcontent.getCookie = function (Name) {
+            var re = new RegExp(Name + "=[^;]+", "i"); //construct RE to search for target name/value pair
+            if (document.cookie.match(re)) //if cookie found
+                return document.cookie.match(re)[0].split("=")[1] //return its value
+            return ""
+        }
+
+        switchcontent.setCookie = function (name, value, days) {
+            if (typeof days != "undefined") { //if set persistent cookie
+                var expireDate = new Date()
+                var expstring = expireDate.setDate(expireDate.getDate() + days)
+                document.cookie = name + "=" + value + "; expires=" + expireDate.toGMTString()
+            }
+            else //else if this is a session only cookie
+                document.cookie = name + "=" + value
+        }
+    </script>
+
+    
+    <style id="antiClickjack">body{display:none !important;}</style>
+    <script type="text/javascript">
+        if (self == top) {
+            var antiClickjack = document.getElementById("antiClickjack");
+            antiClickjack.parentNode.removeChild(antiClickjack);
+        } else {
+            top.location = self.location;
+        }
+    </script>
+
+    <script type="text/JavaScript">
+        var wbgData = wbgData || {};
+        wbgData.page = {
+            pageInfo: {
+                pageName: "en:wb:reports:/home",
+                pageCategory: "home",
+                pageFirstPub: "01-01-2015", // format will be mm-dd-yyyy
+                pageLastMod: "01-01-2016", // format will be mm-dd-yyyy
+                contentType: "Homepage",
+                channel: "DEC WDIOnlineTables EXT"
+            },
+            sectionInfo: {
+                siteSection: "wdi/home",
+                subsectionP2: ""
+            }
+        },
+            wbgData.site = {
+                siteInfo: {
+                    siteLanguage: "en", // format should be en,fr etc.
+                    siteCountry: "usa", // format should be usa, ind etc.
+                    siteEnv: "prod", // format should be prod,stg,uat etc.
+                    siteType: "wdionlinereports"
+                },
+                techInfo: {
+                    cmsType: "sharepoint",
+                    bussVPUnit: "DEC",
+                    bussUnit: "DECDG",
+                    bussUserGroup: "external",
+                    bussAgency: "ibrd"
+                }
+            }
+    </script>
+
+    <script src="//assets.adobedtm.com/572ee9d70241b5c796ae15c773eaaee4365408ec/satelliteLib-efd6120a6f6ed94da49cf49e2ba626ac110c7e3c.js"></script>
+</head>
+<body>
+
+    <div class="container">
+      <div class="wrapper">
+    
+        <!-- header starts -->
+        <header>
+          <nav class="navbar navbar-default navbar-top data-header">
+
+              <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#header-collapse" aria-expanded="false"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </button>
+                <span class="navbar-brand">
+                  <div class="wb-nav-left">
+                    <a class="sprite wb-logo-ibrd-en" href="javascript:;"></a> 
+                    
+                  </div>
+                </span>
+              </div>
+
+              <div class="collapse navbar-collapse" id="header-collapse">
+                <ul class="nav navbar-nav navbar-right text-right">
+                  <li><a href="http://www.worldbank.org">Home</a></li>
+                  <li><a href="http://www.worldbank.org/en/about">About</a></li>
+                  <li class="active"><a href="http://data.worldbank.org/">Data</a></li>
+                  <li><a href="http://www.worldbank.org/en/research">Research</a></li>
+                  <li><a href="https://olc.worldbank.org/">Learning</a></li>
+                  <li><a href="http://www.worldbank.org/en/news">News</a></li>
+                  <li><a href="http://www.worldbank.org/projects">Projects & Operations</a></li>
+                  <li><a href="http://www.worldbank.org/reference/">Publications</a></li>
+                  <li><a href="http://www.worldbank.org/en/country">Countries</a></li>
+                  <li><a href="http://www.worldbank.org/en/topic">Topics</a></li>
+                  <li class="lang-dropdown">
+                    <select class="selectpicker">
+                        <option selected value="en" data-reactid="19">English</option>
+                        <option  value="es" data-reactid="20">Español</option>
+                        <option  value="fr" data-reactid="21">Français</option>
+                        <option  value="ar" data-reactid="22">عربي</option>
+                        <option value="ru" data-reactid="23">Русский</option>
+                        <option  value="zh" data-reactid="24">中文</option>
+                        <option value="oth" data-reactid="25">View All »</option>
+                    </select>
+                  </li>
+                </ul>
+              </div>
+          </nav>
+        </header>
+        <!-- header ends -->
+        
+        <form method="post" action="./tables" id="form1">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwUKLTE2Mjc4MDEzNQ9kFgICAQ9kFgICAQ8WAh4JaW5uZXJodG1sBe4MPHVsIGNsYXNzPSJtYWluVG9waWNzIiAgPjxsaSBkYXRhLWN1c3RvbWxpbms9Im5sOmxlZnQgbmF2aWdhdGlvbiIgb25jbGljaz0nbG9hZFNlY3Rpb25SZXBvcnRzKDApJyBzZWN0aW9uaWQ9JzAnPjxzcGFuIGNsYXNzPSJpY29uIHdvcmxkdmlldyI+PC9zcGFuPjxzcGFuIGNsYXNzPSJudW1iZXIiPjAuPC9zcGFuPjxzcGFuIGNsYXNzPSJ0ZXh0IiA+V09STEQgVklFVzwvc3Bhbj48L2xpPjxsaSBkYXRhLWN1c3RvbWxpbms9Im5sOmxlZnQgbmF2aWdhdGlvbiIgb25jbGljaz0nbG9hZFNlY3Rpb25SZXBvcnRzKDEpJyBzZWN0aW9uaWQ9JzEnPjxzcGFuIGNsYXNzPSJpY29uIHBvdmVydHlhbmRzaGFyZWRwcm9zcGVyaXR5Ij48L3NwYW4+PHNwYW4gY2xhc3M9Im51bWJlciI+MS48L3NwYW4+PHNwYW4gY2xhc3M9InRleHQiID5QT1ZFUlRZIEFORCBTSEFSRUQgUFJPU1BFUklUWTwvc3Bhbj48L2xpPjxsaSBkYXRhLWN1c3RvbWxpbms9Im5sOmxlZnQgbmF2aWdhdGlvbiIgb25jbGljaz0nbG9hZFNlY3Rpb25SZXBvcnRzKDIpJyBzZWN0aW9uaWQ9JzInPjxzcGFuIGNsYXNzPSJpY29uIHBlb3BsZSI+PC9zcGFuPjxzcGFuIGNsYXNzPSJudW1iZXIiPjIuPC9zcGFuPjxzcGFuIGNsYXNzPSJ0ZXh0IiA+UEVPUExFPC9zcGFuPjwvbGk+PGxpIGRhdGEtY3VzdG9tbGluaz0ibmw6bGVmdCBuYXZpZ2F0aW9uIiBvbmNsaWNrPSdsb2FkU2VjdGlvblJlcG9ydHMoMyknIHNlY3Rpb25pZD0nMyc+PHNwYW4gY2xhc3M9Imljb24gZW52aXJvbm1lbnQiPjwvc3Bhbj48c3BhbiBjbGFzcz0ibnVtYmVyIj4zLjwvc3Bhbj48c3BhbiBjbGFzcz0idGV4dCIgPkVOVklST05NRU5UPC9zcGFuPjwvbGk+PGxpIGRhdGEtY3VzdG9tbGluaz0ibmw6bGVmdCBuYXZpZ2F0aW9uIiBvbmNsaWNrPSdsb2FkU2VjdGlvblJlcG9ydHMoNCknIHNlY3Rpb25pZD0nNCc+PHNwYW4gY2xhc3M9Imljb24gZWNvbm9teSI+PC9zcGFuPjxzcGFuIGNsYXNzPSJudW1iZXIiPjQuPC9zcGFuPjxzcGFuIGNsYXNzPSJ0ZXh0IiA+RUNPTk9NWTwvc3Bhbj48L2xpPjxsaSBkYXRhLWN1c3RvbWxpbms9Im5sOmxlZnQgbmF2aWdhdGlvbiIgb25jbGljaz0nbG9hZFNlY3Rpb25SZXBvcnRzKDUpJyBzZWN0aW9uaWQ9JzUnPjxzcGFuIGNsYXNzPSJpY29uIHN0YXRlc2FuZG1hcmtldHMiPjwvc3Bhbj48c3BhbiBjbGFzcz0ibnVtYmVyIj41Ljwvc3Bhbj48c3BhbiBjbGFzcz0idGV4dCIgPlNUQVRFUyBBTkQgTUFSS0VUUzwvc3Bhbj48L2xpPjxsaSBkYXRhLWN1c3RvbWxpbms9Im5sOmxlZnQgbmF2aWdhdGlvbiIgb25jbGljaz0nbG9hZFNlY3Rpb25SZXBvcnRzKDYpJyBzZWN0aW9uaWQ9JzYnPjxzcGFuIGNsYXNzPSJpY29uIGdsb2JhbGxpbmtzIj48L3NwYW4+PHNwYW4gY2xhc3M9Im51bWJlciI+Ni48L3NwYW4+PHNwYW4gY2xhc3M9InRleHQiID5HTE9CQUwgTElOS1M8L3NwYW4+PC9saT48bGkgZGF0YS1jdXN0b21saW5rPSJubDpsZWZ0IG5hdmlnYXRpb24iIG9uY2xpY2s9J2xvYWRTZWN0aW9uUmVwb3J0cyg3KScgc2VjdGlvbmlkPSc3Jz48c3BhbiBjbGFzcz0iaWNvbiBjb3VudHJ5cHJvZmlsZXMiPjwvc3Bhbj48c3BhbiBjbGFzcz0ibnVtYmVyIj48L3NwYW4+PHNwYW4gY2xhc3M9InRleHQiID5DT1VOVFJZIFBST0ZJTEVTPC9zcGFuPjwvbGk+PC91bD5kZOP2KhW5Rsq1jPxu+nZQcQ9/hNBVhJlPjgEz4PHvBrn5" />
+
+<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="90059987" />
+<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEdAAOzZejfebmDEzTg+gRLozBs6vw1NviQlTgqB/hbE7jqJWleDJtRbtbhpfJyTzSYeKgLBvbLgFAED54jiVco1Ss9iUIcuDdoC/tOhwJOEQxbVw==" />
+            <div class="content-wrapper">
+              <div class="content" id="page_content">
+                <div id="content_overlay"></div>
+                <div class="reach-container clearfix">
+                    <div class="databank-wrapper" id="contentWrapper">
+
+                        <div class="explore-media no-padding">
+                            
+                            <div class="row no-margin">
+                                <div class="title-context-links-area">
+                                    <h1 class="page-title ">
+                                        <a href="http://data.worldbank.org/data-catalog/world-development-indicators">
+                                            <span class="year"> </span>World Development Indicators
+                                        </a>
+                                    </h1>
+                                    <div class="searchWrapper" >
+                                        <input name="txtIndicatorSearch" type="text" value="Enter Keywords for search" id="txtIndicatorSearch" class="searchIndicators" style="width: 333px;" />
+                                        <a data-customlink="nl:body" data-text="Indicator Search" href="javascript:void(0)" class="searchBtn fa fa-search"></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="loadingAnimation dispNone">
+                        </div>
+
+                        <div id="content-box">
+                            <!-- Filter -->
+                            <div class="eql-hgt-div plain col-md-3">
+                               <div class="row">
+                                    <div id="leftframe"><ul class="mainTopics"  ><li data-customlink="nl:left navigation" onclick='loadSectionReports(0)' sectionid='0'><span class="icon worldview"></span><span class="number">0.</span><span class="text" >WORLD VIEW</span></li><li data-customlink="nl:left navigation" onclick='loadSectionReports(1)' sectionid='1'><span class="icon povertyandsharedprosperity"></span><span class="number">1.</span><span class="text" >POVERTY AND SHARED PROSPERITY</span></li><li data-customlink="nl:left navigation" onclick='loadSectionReports(2)' sectionid='2'><span class="icon people"></span><span class="number">2.</span><span class="text" >PEOPLE</span></li><li data-customlink="nl:left navigation" onclick='loadSectionReports(3)' sectionid='3'><span class="icon environment"></span><span class="number">3.</span><span class="text" >ENVIRONMENT</span></li><li data-customlink="nl:left navigation" onclick='loadSectionReports(4)' sectionid='4'><span class="icon economy"></span><span class="number">4.</span><span class="text" >ECONOMY</span></li><li data-customlink="nl:left navigation" onclick='loadSectionReports(5)' sectionid='5'><span class="icon statesandmarkets"></span><span class="number">5.</span><span class="text" >STATES AND MARKETS</span></li><li data-customlink="nl:left navigation" onclick='loadSectionReports(6)' sectionid='6'><span class="icon globallinks"></span><span class="number">6.</span><span class="text" >GLOBAL LINKS</span></li><li data-customlink="nl:left navigation" onclick='loadSectionReports(7)' sectionid='7'><span class="icon countryprofiles"></span><span class="number"></span><span class="text" >COUNTRY PROFILES</span></li></ul></div>
+                                </div>
+
+                        
+                            </div>
+                            <!-- ./Filter -->
+                            <!-- Reach Content -->
+                            <div class="eql-hgt-div plain-right col-md-9 no-padding">
+                        
+                                <div id="rightframe"></div>                            
+
+                            </div>
+                            <!-- ./Reach Content -->
+
+                            <div id="content-box-indi" class="dispNone">
+                                <div id="by-indicator">
+                                    <div class="searchHeading">
+                                        <h3>
+                                            Search Results</h3>
+                                    </div>
+                                    <div class="clrBoth">
+                                    </div>
+                                    <div class="clrBoth">
+                                    </div>
+                                    <div id="indi-srch-result">
+                                        <div class="showing-txt">
+                                            <div id="srchResultsTxt">
+                                                No Reports found</div>
+                                            <a href="javascript:void(0)" id="goBackLink"><< Back to Sections</a>
+                                        </div>
+                                        <div class="clrBoth">
+                                        </div>
+                                        <div class="searchResults" id="divSearchResults">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+              </div>
+              <!--/content --> 
+            </div>
+            <!-- /container-fluid-fluid --> 
+
+            <input name="hdnSectionToLoad" type="hidden" id="hdnSectionToLoad" value="0" />
+        </form>
+
+        <!-- Footer --> 
+        <a href="#" class="back-to-top">^ </a>
+        <footer class="footer">
+          <div class=" g02v1-footer brd-t-1">
+            <div class="row">
+              <div class="col-lg-12 ">
+                <ul class="list-inline">
+                  <li><a href="http://www.worldbank.org/" class="sprite wbg-logo-footer-en"></a> </li>
+                  <li> 
+                    <a title="International Bank for Reconstruction and Development" href="http://www.worldbank.org/en/about/what-we-do/brief/ibrd">IBRD</a> &nbsp;&nbsp; 
+                    <a title="International Development Association" href="http://www.worldbank.org/ida">IDA</a> &nbsp;&nbsp; 
+                    <a title="International Finance Corporation" href="http://www.ifc.org/">IFC</a> &nbsp;&nbsp; 
+                    <a title="Multilateral Investment Guarantee Agency" href="http://www.miga.org/">MIGA</a> &nbsp;&nbsp; 
+                    <a title="International Centre for Settlement of Investment Disputes" href="http://icsid.worldbank.org/">ICSID</a> 
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-lg-12 ">
+                <div class="g02v1-copyright col-md-6 col-sm-6">
+                  <div class="g02v1-footer-copyright"> 
+                      <a href="http://www.worldbank.org/legalinfo">Legal</a> | 
+                      <a href="http://www.worldbank.org/wbaccess">Access to Information</a> | 
+                      <a href="http://www.worldbank.org/jobs">Jobs</a> | 
+                      <a href="http://www.worldbank.org/sitemap">Site Map</a> | 
+                      <a href="http://www.worldbank.org/contacts">Contact</a>
+                  </div>
+                  <div class="g02v1-footer-copyright">© 
+                    <script language="JavaScript">
+                                <!-- Begin
+                                var time = new Date();
+                                var year = time.getYear();
+                                if (year < 2000)
+                                    year = year + 1900;
+                                document.write(year);// End -->
+                    </script> 
+                    The World Bank Group, All Rights Reserved.</div>
+                </div>
+                <div class="g02v1-copyright col-sm-6 col-md-6">
+                  <div class=" g02v1-footer-fraud"> <a href="http://web.worldbank.org/WBSITE/EXTERNAL/EXTABOUTUS/ORGANIZATION/ORGUNITS/EXTDOII/0,,contentMDK:20659616~menuPK:1702202~pagePK:64168445~piPK:64168309~theSitePK:588921,00.html">Report Fraud or Corruption</a> </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </footer>
+
+
+        <div class="clearfix"></div>
+      </div>
+    </div>
+
+
+    <iframe id="dl-iframe" style="display: none;"></iframe>
+
+    <div id="helplink">
+        <h2 onclick="javascript:uvClick()">
+            Help/Feedback</h2>
+    </div>
+
+
+    <script type="text/JavaScript">
+        wbgData.page.sectionInfo.siteSection = "WDI:Tables:Home";
+
+        _satellite.pageBottom();
+
+        function AnalyticsControlClick(clickdetails, params) {
+            wbgData.page.sectionInfo.siteSection = 'wdi/' + clickdetails;
+            wbgData.page.sectionInfo.subsectionP2 = params;
+
+            _satellite.track("dynamicdata");
+        }
+    </script>
+
+</body>
+</html>
